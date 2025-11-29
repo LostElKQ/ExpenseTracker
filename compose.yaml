@@ -1,0 +1,49 @@
+﻿name: expense_tracker
+
+services:
+  expense_tracker_db:
+    image: postgres:18
+    container_name: expense_tracker_db
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5440:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/
+    networks:
+      - expense_tracker_net
+  
+  expense_tracker:
+    image: expense_tracker:dev
+    container_name: expense_tracker
+    build:
+      context: .
+      dockerfile: /ExpenseTracker/Dockerfile
+    depends_on:
+      expense_tracker_db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNET_STAGE}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      ConnectionStrings__Default: "Host=expense_tracker_db;Port=5432;Database=${POSTGRES_DB};User 
+      Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    ports:
+      - "5100:8080"
+    networks:
+      - expense_tracker_net
+
+volumes:
+  db_data:
+
+networks:
+  expense_tracker_net:
+    driver: bridge
