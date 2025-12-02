@@ -15,7 +15,7 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
             .Where(e => filterOptions.CategoryId == null || e.CategoryId == filterOptions.CategoryId)
             .Where(e => e.Date >= filterOptions.DateFrom && e.Date <= filterOptions.DateTo)
             .Where(e => e.Amount >= filterOptions.MinAmount && e.Amount <= filterOptions.MaxAmount)
-            .Select(e => new ExpenseDto(e.Id, e.Category.Name, e.Amount, e.Date, e.Comment))
+            .Select(e => new ExpenseDto(e.Id, e.CategoryId, e.Category.Name, e.Amount, e.Date, e.Comment))
             .AsAsyncEnumerable()
             .OrderBy(e => e.Date)
             .ThenByDescending(e => e.Amount)
@@ -41,7 +41,7 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
             };
         }
 
-        return new ExpenseDto(expense.Id, expense.Category.Name, expense.Amount, expense.Date, expense.Comment);
+        return new ExpenseDto(expense.Id, expense.CategoryId, expense.Category.Name, expense.Amount, expense.Date, expense.Comment);
     }
 
     public async Task<Result<ExpenseDto, ProblemDetails>> AddAsync(AddExpenseRequestDto expense)
@@ -72,6 +72,7 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
         await db.SaveChangesAsync();
 
         return new ExpenseDto(newExpense.Id,
+            newExpense.CategoryId,
             newExpense.Category.Name,
             newExpense.Amount,
             newExpense.Date,
@@ -117,6 +118,7 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
         await db.SaveChangesAsync();
 
         return new ExpenseDto(expenseToUpdate.Id,
+            expenseToUpdate.CategoryId,
             expenseToUpdate.Category.Name,
             expenseToUpdate.Amount,
             expenseToUpdate.Date,

@@ -40,6 +40,9 @@ builder.Services.AddScoped<IExportService, ExportService>();
 
 WebApplication app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseSerilogRequestLogging();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -55,5 +58,6 @@ app.MapCategoryEndpoints();
 app.MapStatsEndpoints();
 app.MapExportEndpoints();
 
+app.MapFallbackToFile("index.html");
 
 app.Run();

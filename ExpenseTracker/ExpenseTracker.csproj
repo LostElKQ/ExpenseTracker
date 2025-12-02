@@ -28,6 +28,21 @@
 
     <ItemGroup>
       <Folder Include="Migrations\" />
+      <Folder Include="wwwroot\assets\" />
     </ItemGroup>
+
+    <Target Name="BuildFrontend" BeforeTargets="Build">
+        <Exec WorkingDirectory="../Frontend" Command="npm ci" />
+        <Exec WorkingDirectory="../Frontend" Command="npm run build" />
+    </Target>
+
+    <Target Name="CopyFrontendToWwwroot" AfterTargets="Build">
+        <ItemGroup>
+            <FrontEndFiles Include="../Frontend/dist/**" />
+        </ItemGroup>
+        <Copy SourceFiles="@(FrontEndFiles)"
+              DestinationFolder="wwwroot/%(RecursiveDir)"
+              SkipUnchangedFiles="true" />
+    </Target>
 
 </Project>
