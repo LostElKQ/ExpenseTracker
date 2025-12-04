@@ -25,8 +25,6 @@ public static class ExpenseEndpoints
         [AsParameters] FilterOptions filterOptions,
         IExpenseService service)
     {
-        Log.Information("FilterOptions = {FilterOptions}", JsonSerializer.Serialize(filterOptions));
-
         if (!FilterOptions.Validate(filterOptions, out FilterOptions? validated))
         {
             return TypedResults.BadRequest(new ProblemDetails
@@ -36,8 +34,6 @@ public static class ExpenseEndpoints
                 Detail = "Invalid data range",
             });
         }
-
-        Log.Information("Validated FilterOptions = {FilterOptions}", JsonSerializer.Serialize(validated));
 
         return TypedResults.Ok(await service.GetAllWithFilterAsync(validated));
     }

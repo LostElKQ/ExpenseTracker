@@ -3,6 +3,7 @@ using ExpenseTracker.Context;
 using ExpenseTracker.Dto;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTracker.Endpoints;
 
@@ -12,19 +13,28 @@ public static class ExportEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("/export");
 
-        group.MapGet("/csv", ExportCsvAsync);
+        group.MapGet("/csv", ExportCsvAsync)
+            .Produces<string>(contentType: "text/csv");
     }
 
-    private static async Task<ContentHttpResult> ExportCsvAsync(
-        [AsParameters] DateFilterOptions filterOptions,
+    private static async Task<Results<ContentHttpResult, BadRequest<ProblemDetails>>> ExportCsvAsync(
+        [AsParameters] DateFilterOptions dateFilterOptions,
         IExportService service)
     {
-        filterOptions.DateFrom ??= new DateOnly(1, 1, 1);
-        DateTime now = DateTime.Now;
-        filterOptions.DateTo ??= new DateOnly(now.Year, now.Month, now.Day);
+        if (!DateFilterOptions.Validate(dateFilterOptions, out DateFilterOptions? validated))
+        {
+            return TypedResults.BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid date filter options",
+                Detail = "Invalid data range.",
+            });
+        }
 
-        string csv = await service.ExportCsvAsync(filterOptions);
+        string csv = await service.ExportCsvAsync(validated);
 
-        return TypedResults.Text(csv, "text/csv", new UTF8Encoding());
+        return TypedResults.Text(csv,
+            "text/csv",
+            new UTF8Encoding());
     }
 }

@@ -14,11 +14,9 @@ public sealed record FilterOptions(
 {
     private FilterOptions(FilterOptions original)
     {
-        Log.Information("Called {Name} constructor", nameof(FilterOptions));
         CategoryIds ??= original.CategoryIds ?? [];
         DateFrom ??= original.DateFrom ?? new DateOnly(1, 1, 1);
-        DateTime now = DateTime.Now;
-        DateTo ??= original.DateTo ?? new DateOnly(now.Year, now.Month, now.Day);
+        DateTo ??= original.DateTo ?? new DateOnly(9999, 12, 31);
         MinAmount ??= original.MinAmount ?? decimal.MinValue;
         MaxAmount ??= original.MaxAmount ?? decimal.MaxValue;
         Page = original.Page;
@@ -42,8 +40,6 @@ public sealed record FilterOptions(
 
             return false;
         }
-
-        Log.Information("Filter options validated successfully");
 
         result = new FilterOptions(filterOptions);
 
