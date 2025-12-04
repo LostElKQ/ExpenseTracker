@@ -10,19 +10,21 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
 {
     public async Task<List<ExpenseDto>> GetAllWithFilterAsync(FilterOptions filterOptions)
     {
-        return await db.Expenses
+        List<ExpenseDto> expenseDtos = await db.Expenses
             .Include(e => e.Category)
-            .Where(e => filterOptions.CategoryId == null || e.CategoryId == filterOptions.CategoryId)
+            .AsAsyncEnumerable()
+            .Where(e => filterOptions.CategoryIds!.Length == 0 || filterOptions.CategoryIds.Contains(e.CategoryId))
             .Where(e => e.Date >= filterOptions.DateFrom && e.Date <= filterOptions.DateTo)
             .Where(e => e.Amount >= filterOptions.MinAmount && e.Amount <= filterOptions.MaxAmount)
             .Select(e => new ExpenseDto(e.Id, e.CategoryId, e.Category.Name, e.Amount, e.Date, e.Comment))
-            .AsAsyncEnumerable()
             .OrderBy(e => e.Date)
             .ThenByDescending(e => e.Amount)
             .ThenBy(e => e.CategoryName)
             .Skip(filterOptions.Page * filterOptions.Size)
             .Take(filterOptions.Size)
             .ToListAsync();
+
+        return expenseDtos;
     }
 
     public async Task<Result<ExpenseDto, ProblemDetails>> GetByIdAsync(Guid id)

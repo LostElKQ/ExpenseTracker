@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ExpenseTracker.Dto;
 using ExpenseTracker.Models;
 using ExpenseTracker.Services;
@@ -24,33 +25,21 @@ public static class ExpenseEndpoints
         [AsParameters] FilterOptions filterOptions,
         IExpenseService service)
     {
-        filterOptions.DateFrom ??= new DateOnly(1, 1, 1);
-        DateTime now = DateTime.Now;
-        filterOptions.DateTo ??= new DateOnly(now.Year, now.Month, now.Day);
-        filterOptions.MinAmount ??= decimal.MinValue;
-        filterOptions.MaxAmount ??= decimal.MaxValue;
+        Log.Information("FilterOptions = {FilterOptions}", JsonSerializer.Serialize(filterOptions));
 
-        if (filterOptions.DateFrom > filterOptions.DateTo)
+        if (!FilterOptions.Validate(filterOptions, out FilterOptions? validated))
         {
             return TypedResults.BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid date range",
-                Detail = "Date from must be less than date to",
+                Title = "Invalid filter options",
+                Detail = "Invalid data range",
             });
         }
 
-        if (filterOptions.MinAmount > filterOptions.MaxAmount)
-        {
-            return TypedResults.BadRequest(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid amount range",
-                Detail = "Min amount must be less than max amount",
-            });
-        }
+        Log.Information("Validated FilterOptions = {FilterOptions}", JsonSerializer.Serialize(validated));
 
-        return TypedResults.Ok(await service.GetAllWithFilterAsync(filterOptions));
+        return TypedResults.Ok(await service.GetAllWithFilterAsync(validated));
     }
 
     private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> GetExpenseByIdAsync(

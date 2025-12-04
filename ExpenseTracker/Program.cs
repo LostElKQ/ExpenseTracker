@@ -1,10 +1,25 @@
+using System.Globalization;
 using ExpenseTracker;
 using ExpenseTracker.Context;
 using ExpenseTracker.Endpoints;
 using ExpenseTracker.Services;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+
+var culture = new CultureInfo("en-GB")
+{
+    DateTimeFormat =
+    {
+        ShortDatePattern = "yyyy-MM-dd",
+        YearMonthPattern = "yyyy-MM",
+    },
+};
+
+
+CultureInfo[] supportedCultures = [culture];
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -20,7 +35,17 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddNpgsql<ApplicationContext>(builder.Configuration.GetConnectionString("Default"));
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.MapType<DateOnly>(() =>
+        new OpenApiSchema
+        {
+            Type = JsonSchemaType.String,
+            Format = "date",
+            Example = DateTime.Now.ToString(culture.DateTimeFormat.ShortDatePattern),
+        });
+});
 
 builder.Services.AddSerilog((provider, configuration) =>
 {
@@ -39,6 +64,13 @@ builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 
 WebApplication app = builder.Build();
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(culture),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures,
+});
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

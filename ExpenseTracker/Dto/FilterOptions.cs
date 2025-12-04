@@ -1,12 +1,52 @@
+using System.Diagnostics.CodeAnalysis;
+using Serilog;
+
 namespace ExpenseTracker.Dto;
 
-public sealed class FilterOptions
+public sealed record FilterOptions(
+    Guid[]? CategoryIds,
+    DateOnly? DateFrom,
+    DateOnly? DateTo,
+    decimal? MinAmount,
+    decimal? MaxAmount,
+    int Page,
+    int Size)
 {
-    public Guid? CategoryId { get; set; }
-    public DateOnly? DateFrom { get; set; }
-    public DateOnly? DateTo { get; set; }
-    public decimal? MinAmount { get; set; }
-    public decimal? MaxAmount { get; set; }
-    public int Page { get; set; }
-    public int Size { get; set; }
+    private FilterOptions(FilterOptions original)
+    {
+        Log.Information("Called {Name} constructor", nameof(FilterOptions));
+        CategoryIds ??= original.CategoryIds ?? [];
+        DateFrom ??= original.DateFrom ?? new DateOnly(1, 1, 1);
+        DateTime now = DateTime.Now;
+        DateTo ??= original.DateTo ?? new DateOnly(now.Year, now.Month, now.Day);
+        MinAmount ??= original.MinAmount ?? decimal.MinValue;
+        MaxAmount ??= original.MaxAmount ?? decimal.MaxValue;
+        Page = original.Page;
+        Size = original.Size;
+    }
+
+
+    [MemberNotNullWhen(true,
+        nameof(CategoryIds),
+        nameof(DateFrom),
+        nameof(DateTo),
+        nameof(MinAmount),
+        nameof(MaxAmount))]
+    public static bool Validate(
+        FilterOptions filterOptions,
+        [NotNullWhen(true)] out FilterOptions? result)
+    {
+        if (filterOptions.DateFrom > filterOptions.DateTo || filterOptions.MinAmount > filterOptions.MaxAmount)
+        {
+            result = null;
+
+            return false;
+        }
+
+        Log.Information("Filter options validated successfully");
+
+        result = new FilterOptions(filterOptions);
+
+        return true;
+    }
 }
