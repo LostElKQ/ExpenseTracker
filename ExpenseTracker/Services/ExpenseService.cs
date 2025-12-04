@@ -20,8 +20,8 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
             .OrderBy(e => e.Date)
             .ThenByDescending(e => e.Amount)
             .ThenBy(e => e.CategoryName)
-            .Skip(filterOptions.Skip ?? 0)
-            .Take(filterOptions.Take ?? int.MaxValue)
+            .Skip(filterOptions.Page * filterOptions.Size)
+            .Take(filterOptions.Size)
             .ToListAsync();
     }
 

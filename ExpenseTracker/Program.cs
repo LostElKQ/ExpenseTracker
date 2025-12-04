@@ -10,8 +10,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate: 
-        "[{{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Console()
     .WriteTo.File("logs", rollingInterval: RollingInterval.Day)
     .WriteTo.Debug(new CompactJsonFormatter())
     .CreateBootstrapLogger();
@@ -25,7 +24,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSerilog((provider, configuration) =>
 {
-    configuration.ReadFrom.Configuration(builder.Configuration)
+    configuration
+        .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(provider)
         .Enrich.FromLogContext()
         .WriteTo.Console()

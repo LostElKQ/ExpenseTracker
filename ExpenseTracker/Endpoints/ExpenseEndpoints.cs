@@ -29,8 +29,6 @@ public static class ExpenseEndpoints
         filterOptions.DateTo ??= new DateOnly(now.Year, now.Month, now.Day);
         filterOptions.MinAmount ??= decimal.MinValue;
         filterOptions.MaxAmount ??= decimal.MaxValue;
-        filterOptions.Skip ??= 0;
-        filterOptions.Take ??= int.MaxValue;
 
         if (filterOptions.DateFrom > filterOptions.DateTo)
         {

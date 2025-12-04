@@ -7,6 +7,6 @@ public sealed class FilterOptions
     public DateOnly? DateTo { get; set; }
     public decimal? MinAmount { get; set; }
     public decimal? MaxAmount { get; set; }
-    public int? Skip { get; set; }
-    public int? Take { get; set; }
+    public int Page { get; set; }
+    public int Size { get; set; }
 }
