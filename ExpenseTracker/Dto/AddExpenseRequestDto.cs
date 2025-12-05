@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ExpenseTracker.Dto;
 
 public sealed record AddExpenseRequestDto(

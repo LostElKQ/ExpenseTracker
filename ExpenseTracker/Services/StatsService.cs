@@ -1,6 +1,5 @@
 using ExpenseTracker.Context;
 using ExpenseTracker.Dto;
-using ExpenseTracker.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Services;

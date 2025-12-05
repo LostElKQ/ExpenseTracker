@@ -1,10 +1,8 @@
-using System.Text.Json;
 using ExpenseTracker.Dto;
 using ExpenseTracker.Models;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
 
 namespace ExpenseTracker.Endpoints;
 

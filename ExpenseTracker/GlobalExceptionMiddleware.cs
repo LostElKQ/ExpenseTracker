@@ -1,4 +1,3 @@
-using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
