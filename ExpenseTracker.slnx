@@ -3,6 +3,7 @@
     <File Path=".dockerignore" />
     <File Path=".env" />
     <File Path="compose.yaml" />
+    <File Path=".gitignore"/>
   </Folder>
   <Project Path="ExpenseTracker/ExpenseTracker.csproj" />
 </Solution>

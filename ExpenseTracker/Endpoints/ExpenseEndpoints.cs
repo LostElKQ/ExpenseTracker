@@ -21,6 +21,7 @@ public static class ExpenseEndpoints
 
     private static async Task<Results<Ok<List<ExpenseDto>>, BadRequest<ProblemDetails>>> GetAllExpensesWithFilterAsync(
         [AsParameters] FilterOptions filterOptions,
+        [FromQuery] string? sort,
         IExpenseService service)
     {
         if (!FilterOptions.Validate(filterOptions, out FilterOptions? validated))
@@ -33,7 +34,23 @@ public static class ExpenseEndpoints
             });
         }
 
-        return TypedResults.Ok(await service.GetAllWithFilterAsync(validated));
+        IReadOnlyList<SortingRule> rules;
+
+        try
+        {
+            rules = SortStringParser.Parse(sort);
+        }
+        catch (Exception e)
+        {
+            return TypedResults.BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid sort string",
+                Detail = e.Message,
+            });
+        }
+
+        return TypedResults.Ok(await service.GetAllWithFilterAsync(validated, rules));
     }
 
     private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> GetExpenseByIdAsync(

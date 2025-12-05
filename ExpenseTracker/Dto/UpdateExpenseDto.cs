@@ -1,6 +1,6 @@
 namespace ExpenseTracker.Dto;
 
-public record UpdateExpenseDto(
+public sealed record UpdateExpenseDto(
     Guid? CategoryId,
     decimal? Amount,
     DateOnly? Date,

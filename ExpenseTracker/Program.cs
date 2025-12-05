@@ -1,7 +1,7 @@
 using System.Globalization;
-using ExpenseTracker;
 using ExpenseTracker.Context;
 using ExpenseTracker.Endpoints;
+using ExpenseTracker.Middlewares;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi;

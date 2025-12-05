@@ -1,5 +1,6 @@
 using ExpenseTracker.Context;
 using ExpenseTracker.Dto;
+using ExpenseTracker.Extensions.Sorting;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,23 +9,25 @@ namespace ExpenseTracker.Services;
 
 public sealed class ExpenseService(ApplicationContext db) : IExpenseService
 {
-    public async Task<List<ExpenseDto>> GetAllWithFilterAsync(FilterOptions filterOptions)
+    public async Task<List<ExpenseDto>> GetAllWithFilterAsync(
+        FilterOptions filterOptions, IReadOnlyList<SortingRule> rules)
     {
-        List<ExpenseDto> expenseDtos = await db.Expenses
+        IAsyncEnumerable<ExpenseDto> expenseDtos = db.Expenses
             .Include(e => e.Category)
-            .AsAsyncEnumerable()
-            .Where(e => filterOptions.CategoryIds!.Length == 0 || filterOptions.CategoryIds.Contains(e.CategoryId))
-            .Where(e => e.Date >= filterOptions.DateFrom && e.Date <= filterOptions.DateTo)
-            .Where(e => e.Amount >= filterOptions.MinAmount && e.Amount <= filterOptions.MaxAmount)
+            .Where(e => filterOptions.CategoryIds!.Length == 0 ||
+                        filterOptions.CategoryIds.AsEnumerable().Contains(e.CategoryId))
+            .Where(e => filterOptions.DateFrom <= e.Date && e.Date <= filterOptions.DateTo)
+            .Where(e => filterOptions.MinAmount <= e.Amount && e.Amount <= filterOptions.MaxAmount)
             .Select(e => new ExpenseDto(e.Id, e.CategoryId, e.Category.Name, e.Amount, e.Date, e.Comment))
-            .OrderBy(e => e.Date)
-            .ThenByDescending(e => e.Amount)
-            .ThenBy(e => e.CategoryName)
+            .AsAsyncEnumerable();
+
+        List<ExpenseDto> result = await expenseDtos
+            .ApplySorting(rules)
             .Skip(filterOptions.Page * filterOptions.Size)
             .Take(filterOptions.Size)
             .ToListAsync();
 
-        return expenseDtos;
+        return result;
     }
 
     public async Task<Result<ExpenseDto, ProblemDetails>> GetByIdAsync(Guid id)
@@ -43,7 +46,8 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
             };
         }
 
-        return new ExpenseDto(expense.Id, expense.CategoryId, expense.Category.Name, expense.Amount, expense.Date, expense.Comment);
+        return new ExpenseDto(expense.Id, expense.CategoryId, expense.Category.Name, expense.Amount, expense.Date,
+            expense.Comment);
     }
 
     public async Task<Result<ExpenseDto, ProblemDetails>> AddAsync(AddExpenseRequestDto expense)

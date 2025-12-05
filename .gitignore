@@ -3,7 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-.idea/
 
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -616,10 +615,10 @@ ExpenseTracker/appsettings.Development.json
 ExpenseTracker/Properties/launchSettings.json
 Frontend/
 ExpenseTracker/wwwroot/
+*.png
 
 ### react template
 .DS_*
-*.log
 logs
 **/*.backup.*
 **/*.back.*

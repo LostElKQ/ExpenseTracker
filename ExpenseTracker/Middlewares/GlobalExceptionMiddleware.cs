@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
-namespace ExpenseTracker;
+namespace ExpenseTracker.Middlewares;
 
 public sealed class GlobalExceptionMiddleware
 {
