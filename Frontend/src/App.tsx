@@ -16,14 +16,66 @@ type Expense = {
     categoryName?: string;
 };
 
+type ProblemDetails = {
+    status: number;
+    title: string;
+    detail: string;
+};
+
+export function CategoryMultiSelectDropdown({categories, selected, onChange}: {
+    categories: Category[],
+    selected: string[],
+    onChange: any
+}) {
+    const [open, setOpen] = React.useState<boolean>(false);
+    return (
+        <div className="relative inline-block w-full">
+            <button
+                type={"button"}
+                className={"border rounded px-2 py-1 w-full text-left"}
+                onClick={() => setOpen(o => !o)}>
+                {selected.length === 0 ? "— All —" : `${selected.length} selected`}
+            </button>
+
+            {open && (
+                <div
+                    className="absolute z-10 mt-1 bg-white border rounded shadow p-2 min-w-full w-max max-h-48 overflow-y-auto flex flex-col flex-wrap">
+                    {categories.map(category => {
+                        const isChecked = selected.includes(category.id as any);
+                        return (
+                            <label key={category.id}>
+                                <input type="checkbox" checked={isChecked}
+                                       onChange={() => {
+                                           if (isChecked) {
+                                               onChange(selected.filter(x => x !== category.id));
+                                           }
+                                           else {
+                                               onChange([...selected, category.id]);
+                                           }
+
+                                       }}
+                                />
+                                <span>{category.name}</span>
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function App(): React.JSX.Element {
     const [categories, setCategories] = useState<Category[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [page, setPage] = useState<number>(1);
+    const [size, _] = useState<number>(20);
+
     // Filters & form state
-    const [filterCategoryId, setFilterCategoryId] = useState<string | "">("");
+    const [filterCategoryIds, setFilterCategoryIds] = useState<string[]>([]);
     const [filterFrom, setFilterFrom] = useState<string>("");
     const [filterTo, setFilterTo] = useState<string>("");
 
@@ -45,14 +97,19 @@ export default function App(): React.JSX.Element {
         }
     };
 
-    const fetchExpenses = async () => {
+    const fetchExpenses = async (page: number, size: number) => {
         setLoading(true);
         setError(null);
         try {
             const params = new URLSearchParams();
-            if (filterCategoryId) params.set("categoryId", filterCategoryId);
+            if (filterCategoryIds) {
+                filterCategoryIds.forEach((id) => params.append("categoryId", id));
+            }
             if (filterFrom) params.set("from", filterFrom);
             if (filterTo) params.set("to", filterTo);
+
+            params.set("page", (page - 1).toString());
+            params.set("size", size.toString());
 
             const res = await fetch(`${API_BASE}/expenses?${params.toString()}`);
             if (!res.ok) throw new Error(`Failed to load expenses: ${res.status}`);
@@ -67,9 +124,9 @@ export default function App(): React.JSX.Element {
 
     useEffect(() => {
         fetchCategories();
-        fetchExpenses();
+        fetchExpenses(page, size);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [page, size]);
 
     // Create expense
     const handleCreateExpense = async (e?: React.FormEvent) => {
@@ -85,7 +142,7 @@ export default function App(): React.JSX.Element {
                 amount: Number(newExpense.amount),
                 date: newExpense.date,
                 comment: newExpense.comment ?? "",
-                categoryId: Number(newExpense.categoryId),
+                categoryId: newExpense.categoryId,
             };
 
             const res = await fetch(`${API_BASE}/expenses`, {
@@ -96,7 +153,8 @@ export default function App(): React.JSX.Element {
 
             if (!res.ok) {
                 const text = await res.text();
-                throw new Error(`Create failed: ${res.status} ${text}`);
+                const problem: ProblemDetails = JSON.parse(text);
+                throw new Error(`Create failed: ${problem.status}\n${problem.title}\n${problem.detail}`);
             }
 
             // reset form
@@ -106,7 +164,7 @@ export default function App(): React.JSX.Element {
                 comment: "",
                 categoryId: undefined
             });
-            await fetchExpenses();
+            await fetchExpenses(page, size);
         } catch (e: any) {
             setError(e.message ?? String(e));
         }
@@ -125,19 +183,21 @@ export default function App(): React.JSX.Element {
 
     const handleApplyFilters = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        await fetchExpenses();
+        await fetchExpenses(page, size);
     };
 
     const handleClearFilters = () => {
-        setFilterCategoryId("");
+        setFilterCategoryIds([]);
         setFilterFrom("");
         setFilterTo("");
-        fetchExpenses();
+        fetchExpenses(page, size);
     };
 
     const exportCsv = () => {
         const params = new URLSearchParams();
-        if (filterCategoryId) params.set("categoryId", filterCategoryId);
+        if (filterCategoryIds) {
+            filterCategoryIds.forEach((id) => params.append("categoryId", id));
+        }
         if (filterFrom) params.set("from", filterFrom);
         if (filterTo) params.set("to", filterTo);
         window.open(`${API_BASE}/export/csv?${params.toString()}`, "_blank");
@@ -145,13 +205,13 @@ export default function App(): React.JSX.Element {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto">
                 <header className="mb-6">
                     <h1 className="text-2xl font-semibold">Expense Tracker — Lite</h1>
                     <p className="text-sm text-gray-600 mt-1">Minimal UI on TypeScript + React. Backend: Minimal API</p>
                 </header>
 
-                <main className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <main className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {/* Left: Form */}
                     <section className="md:col-span-1 bg-white p-4 rounded-lg shadow-sm">
                         <h2 className="font-medium mb-3">Add Expense</h2>
@@ -241,23 +301,16 @@ export default function App(): React.JSX.Element {
                     </section>
 
                     {/* Right: Expenses + Filters */}
-                    <section className="md:col-span-2">
+                    <section className="md:col-span-3">
                         <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
                             <h2 className="font-medium mb-3">Filters</h2>
                             <form onSubmit={handleApplyFilters}
                                   className="flex flex-col md:flex-row gap-2 md:items-end">
                                 <div className="flex-1">
                                     <label className="block text-xs text-gray-600">Category</label>
-                                    <select value={filterCategoryId}
-                                            onChange={(e) => setFilterCategoryId(e.target.value)}
-                                            className="w-full border rounded px-2 py-1">
-                                        <option value="">— All —</option>
-                                        {categories.map((c) => (
-                                            <option key={c.id} value={String(c.id)}>
-                                                {c.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <CategoryMultiSelectDropdown categories={categories}
+                                                                 selected={filterCategoryIds}
+                                                                 onChange={setFilterCategoryIds}/>
                                 </div>
 
                                 <div>
@@ -335,6 +388,28 @@ export default function App(): React.JSX.Element {
                                 ))}
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-4 justify-center">
+                            <button
+                                className="px-4 py-2 bg-gray-200 rounded"
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                            >
+                                Назад
+                            </button>
+
+                            <span>Страница {page}</span>
+
+                            <button
+                                className="px-4 py-2 bg-gray-200 rounded"
+                                // disabled={page * size >= total}
+                                onClick={() => setPage(p => p + 1)}
+                            >
+                                Вперед
+                            </button>
+
+                            {/*<span>Всего: {total}</span>*/}
                         </div>
                     </section>
                 </main>

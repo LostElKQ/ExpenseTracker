@@ -63,14 +63,15 @@ public static class ExpenseEndpoints
             error => TypedResults.NotFound(error));
     }
 
-    private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> AddExpenseAsync(
+    private static async Task<Results<Ok<ExpenseDto>, ProblemHttpResult>> AddExpenseAsync(
         AddExpenseRequestDto expense, IExpenseService service)
     {
         Result<ExpenseDto, ProblemDetails> result = await service.AddAsync(expense);
 
-        return result.Match<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>>(
+        return result.Match<Results<Ok<ExpenseDto>, ProblemHttpResult>>(
             success => TypedResults.Ok(success),
-            error => TypedResults.NotFound(error));
+            error => TypedResults
+                .Problem(error));
     }
 
     private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> UpdateExpenseAsync(

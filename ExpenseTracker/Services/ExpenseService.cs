@@ -52,6 +52,16 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
 
     public async Task<Result<ExpenseDto, ProblemDetails>> AddAsync(AddExpenseRequestDto expense)
     {
+        if (expense.Comment?.Length > 256)
+        {
+            return new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Failed to add expense",
+                Detail = "Comment is too long",
+            };
+        }
+        
         Category? category = await db.Categories
             .FirstOrDefaultAsync(c => c.Id == expense.CategoryId);
 
