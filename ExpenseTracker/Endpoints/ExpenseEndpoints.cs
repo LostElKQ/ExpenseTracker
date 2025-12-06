@@ -19,14 +19,14 @@ public static class ExpenseEndpoints
         group.MapDelete("/{id:guid}", DeleteExpenseAsync);
     }
 
-    private static async Task<Results<Ok<List<ExpenseDto>>, BadRequest<ProblemDetails>>> GetAllExpensesWithFilterAsync(
+    private static async Task<Results<Ok<List<ExpenseDto>>, ProblemHttpResult>> GetAllExpensesWithFilterAsync(
         [AsParameters] FilterOptions filterOptions,
         [FromQuery] string? sort,
         IExpenseService service)
     {
         if (!FilterOptions.Validate(filterOptions, out FilterOptions? validated))
         {
-            return TypedResults.BadRequest(new ProblemDetails
+            return TypedResults.Problem(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid filter options",
@@ -42,7 +42,7 @@ public static class ExpenseEndpoints
         }
         catch (Exception e)
         {
-            return TypedResults.BadRequest(new ProblemDetails
+            return TypedResults.Problem(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid sort string",
@@ -53,14 +53,14 @@ public static class ExpenseEndpoints
         return TypedResults.Ok(await service.GetAllWithFilterAsync(validated, rules));
     }
 
-    private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> GetExpenseByIdAsync(
+    private static async Task<Results<Ok<ExpenseDto>, ProblemHttpResult>> GetExpenseByIdAsync(
         Guid id, IExpenseService service)
     {
         Result<ExpenseDto, ProblemDetails> result = await service.GetByIdAsync(id);
 
-        return result.Match<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>>(
+        return result.Match<Results<Ok<ExpenseDto>, ProblemHttpResult>>(
             success => TypedResults.Ok(success),
-            error => TypedResults.NotFound(error));
+            error => TypedResults.Problem(error));
     }
 
     private static async Task<Results<Ok<ExpenseDto>, ProblemHttpResult>> AddExpenseAsync(
@@ -74,23 +74,23 @@ public static class ExpenseEndpoints
                 .Problem(error));
     }
 
-    private static async Task<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>> UpdateExpenseAsync(
+    private static async Task<Results<Ok<ExpenseDto>, ProblemHttpResult>> UpdateExpenseAsync(
         Guid id, UpdateExpenseDto expense, IExpenseService service)
     {
         Result<ExpenseDto, ProblemDetails> result = await service.UpdateAsync(id, expense);
 
-        return result.Match<Results<Ok<ExpenseDto>, NotFound<ProblemDetails>>>(
+        return result.Match<Results<Ok<ExpenseDto>, ProblemHttpResult>>(
             success => TypedResults.Ok(success),
-            error => TypedResults.NotFound(error));
+            error => TypedResults.Problem(error));
     }
 
-    private static async Task<Results<NoContent, NotFound<ProblemDetails>>> DeleteExpenseAsync(
+    private static async Task<Results<NoContent, ProblemHttpResult>> DeleteExpenseAsync(
         Guid id, IExpenseService service)
     {
         Result<int, ProblemDetails> result = await service.DeleteAsync(id);
 
-        return result.Match<Results<NoContent, NotFound<ProblemDetails>>>(
+        return result.Match<Results<NoContent, ProblemHttpResult>>(
             _ => TypedResults.NoContent(),
-            error => TypedResults.NotFound(error));
+            error => TypedResults.Problem(error));
     }
 }

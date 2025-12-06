@@ -25,7 +25,6 @@ public sealed class GlobalExceptionMiddleware
 
             await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
-                Type = null,
                 Title = "Bad Request",
                 Status = StatusCodes.Status400BadRequest,
                 Detail = badRequestEx.Message.Replace("\"", "'"),
@@ -38,7 +37,6 @@ public sealed class GlobalExceptionMiddleware
 
             await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
-                Type = null,
                 Title = "InternalServerError",
                 Status = StatusCodes.Status500InternalServerError,
                 Detail = ex.Message,

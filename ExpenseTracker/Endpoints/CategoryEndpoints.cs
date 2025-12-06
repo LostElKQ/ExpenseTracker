@@ -24,46 +24,33 @@ public static class CategoryEndpoints
     private static async Task<List<CategoryDto>> GetAllCategoriesAsync(ICategoryService service) =>
         await service.GetAllAsync();
 
-    private static async Task<Results<Ok<CategoryDto>, BadRequest<ProblemDetails>>> CreateCategoryAsync(
+    private static async Task<Results<Ok<CategoryDto>, ProblemHttpResult>> CreateCategoryAsync(
         [FromBody] CreateUpdateCategoryDto createUpdateCategoryDto, ICategoryService service)
     {
         Result<CategoryDto, ProblemDetails> result = await service.AddAsync(createUpdateCategoryDto);
 
-        return result.Match<Results<Ok<CategoryDto>, BadRequest<ProblemDetails>>>(
+        return result.Match<Results<Ok<CategoryDto>, ProblemHttpResult>>(
             success => TypedResults.Ok(success),
-            error => TypedResults.BadRequest(error));
+            error => TypedResults.Problem(error));
     }
 
-    private static async Task<Results<Ok<CategoryDto>, NotFound<ProblemDetails>>> UpdateCategoryAsync(
+    private static async Task<Results<Ok<CategoryDto>, ProblemHttpResult>> UpdateCategoryAsync(
         Guid id, [FromBody] CreateUpdateCategoryDto createUpdateCategoryDto, ICategoryService service)
     {
         Result<CategoryDto, ProblemDetails> result = await service.UpdateAsync(id, createUpdateCategoryDto);
 
-        return result.Match<Results<Ok<CategoryDto>, NotFound<ProblemDetails>>>(
+        return result.Match<Results<Ok<CategoryDto>, ProblemHttpResult>>(
             success => TypedResults.Ok(success),
-            error => TypedResults.NotFound(error));
+            error => TypedResults.Problem(error));
     }
 
-    private static async Task<Results<NoContent, BadRequest<ProblemDetails>, NotFound<ProblemDetails>>>
+    private static async Task<Results<NoContent, ProblemHttpResult>>
         DeleteCategoryAsync(Guid id, ICategoryService service)
     {
         Result<int, ProblemDetails> result = await service.DeleteAsync(id);
 
-        return result.Match<Results<NoContent, BadRequest<ProblemDetails>, NotFound<ProblemDetails>>>(
+        return result.Match<Results<NoContent, ProblemHttpResult>>(
             _ => TypedResults.NoContent(),
-            error =>
-            {
-                return error.Status switch
-                {
-                    400 => TypedResults.BadRequest(error),
-                    404 => TypedResults.NotFound(error),
-                    _ => TypedResults.BadRequest(new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Failed to delete category",
-                        Detail = "Something went wrong",
-                    }),
-                };
-            });
+            error => TypedResults.Problem(error));
     }
 }

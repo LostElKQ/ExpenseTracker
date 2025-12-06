@@ -16,12 +16,12 @@ public static class StatsEndpoints
         group.MapGet("/monthly/{year:int}", GetMonthlyStats);
     }
 
-    private static async Task<Results<Ok<TotalStatsDto>, BadRequest<ProblemDetails>>> GetTotalStats(
+    private static async Task<Results<Ok<TotalStatsDto>, ProblemHttpResult>> GetTotalStats(
         [AsParameters] DateFilterOptions dateFilterOptions, IStatsService statsService)
     {
         if (!DateFilterOptions.Validate(dateFilterOptions, out DateFilterOptions? validated))
         {
-            return TypedResults.BadRequest(new ProblemDetails
+            return TypedResults.Problem(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid date filter options",
@@ -34,12 +34,12 @@ public static class StatsEndpoints
         return TypedResults.Ok(stats);
     }
 
-    private static async Task<Results<Ok<CategoryStatsDto[]>, BadRequest<ProblemDetails>>> GetCategoryStats(
+    private static async Task<Results<Ok<CategoryStatsDto[]>, ProblemHttpResult>> GetCategoryStats(
         [AsParameters] DateFilterOptions dateFilterOptions, IStatsService statsService)
     {
         if (!DateFilterOptions.Validate(dateFilterOptions, out DateFilterOptions? validated))
         {
-            return TypedResults.BadRequest(new ProblemDetails
+            return TypedResults.Problem(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid date filter options",

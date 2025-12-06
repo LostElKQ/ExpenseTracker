@@ -16,13 +16,13 @@ public static class ExportEndpoints
             .Produces<string>(contentType: "text/csv");
     }
 
-    private static async Task<Results<ContentHttpResult, BadRequest<ProblemDetails>>> ExportCsvAsync(
+    private static async Task<Results<ContentHttpResult, ProblemHttpResult>> ExportCsvAsync(
         [AsParameters] DateFilterOptions dateFilterOptions,
         IExportService service)
     {
         if (!DateFilterOptions.Validate(dateFilterOptions, out DateFilterOptions? validated))
         {
-            return TypedResults.BadRequest(new ProblemDetails
+            return TypedResults.Problem(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Invalid date filter options",
