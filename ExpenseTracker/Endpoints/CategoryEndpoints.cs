@@ -21,10 +21,8 @@ public static class CategoryEndpoints
         group.MapDelete("/{id:guid}", DeleteCategoryAsync);
     }
 
-    private static async Task<List<CategoryDto>> GetAllCategoriesAsync(ICategoryService service)
-    {
-        return await service.GetAllAsync();
-    }
+    private static async Task<List<CategoryDto>> GetAllCategoriesAsync(ICategoryService service) =>
+        await service.GetAllAsync();
 
     private static async Task<Results<Ok<CategoryDto>, BadRequest<ProblemDetails>>> CreateCategoryAsync(
         [FromBody] CreateUpdateCategoryDto createUpdateCategoryDto, ICategoryService service)

@@ -22,7 +22,7 @@ public sealed class GlobalExceptionMiddleware
         {
             Log.Error(badRequestEx, "Bad Request");
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            
+
             await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
                 Type = null,
@@ -35,7 +35,7 @@ public sealed class GlobalExceptionMiddleware
         {
             Log.Error(ex, "An error occurred");
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            
+
             await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
                 Type = null,

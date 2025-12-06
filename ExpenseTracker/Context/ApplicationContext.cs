@@ -38,7 +38,7 @@ public sealed class ApplicationContext : DbContext
             entity.ToTable("expenses", "tracker");
             entity.HasKey(e => e.Id).HasName("expense_pk");
 
-            
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
@@ -58,8 +58,8 @@ public sealed class ApplicationContext : DbContext
             entity.Property(e => e.Comment)
                 .HasMaxLength(256)
                 .HasColumnName("comment");
-            
-            
+
+
             entity.HasOne(d => d.Category)
                 .WithMany(p => p.Expenses)
                 .HasForeignKey(d => d.CategoryId)

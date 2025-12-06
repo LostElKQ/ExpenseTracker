@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace ExpenseTracker.Dto;
 
 public sealed record FilterOptions(
-    Guid[]? CategoryIds,
+    Guid[]? CategoryId,
     DateOnly? DateFrom,
     DateOnly? DateTo,
     decimal? MinAmount,
@@ -13,7 +13,7 @@ public sealed record FilterOptions(
 {
     private FilterOptions(FilterOptions original)
     {
-        CategoryIds ??= original.CategoryIds ?? [];
+        CategoryId ??= original.CategoryId ?? [];
         DateFrom ??= original.DateFrom ?? new DateOnly(1, 1, 1);
         DateTo ??= original.DateTo ?? new DateOnly(9999, 12, 31);
         MinAmount ??= original.MinAmount ?? decimal.MinValue;
@@ -24,7 +24,7 @@ public sealed record FilterOptions(
 
 
     [MemberNotNullWhen(true,
-        nameof(CategoryIds),
+        nameof(CategoryId),
         nameof(DateFrom),
         nameof(DateTo),
         nameof(MinAmount),

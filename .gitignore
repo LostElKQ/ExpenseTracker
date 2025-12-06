@@ -609,14 +609,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 
-
-ExpenseTracker/Context/ApplicationContextDesignFactory.cs
-ExpenseTracker/appsettings.Development.json
-ExpenseTracker/Properties/launchSettings.json
-Frontend/
-ExpenseTracker/wwwroot/
-*.png
-
 ### react template
 .DS_*
 logs
@@ -632,3 +624,9 @@ psd
 thumb
 sketch
 
+### My components
+/Frontend/README.md
+ExpenseTracker/Context/ApplicationContextDesignFactory.cs
+ExpenseTracker/appsettings.Development.json
+ExpenseTracker/Properties/launchSettings.json
+*.png

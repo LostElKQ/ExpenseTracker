@@ -14,8 +14,8 @@ public sealed class ExpenseService(ApplicationContext db) : IExpenseService
     {
         IAsyncEnumerable<ExpenseDto> expenseDtos = db.Expenses
             .Include(e => e.Category)
-            .Where(e => filterOptions.CategoryIds!.Length == 0 ||
-                        filterOptions.CategoryIds.AsEnumerable().Contains(e.CategoryId))
+            .Where(e => filterOptions.CategoryId!.Length == 0 ||
+                        filterOptions.CategoryId.AsEnumerable().Contains(e.CategoryId))
             .Where(e => filterOptions.DateFrom <= e.Date && e.Date <= filterOptions.DateTo)
             .Where(e => filterOptions.MinAmount <= e.Amount && e.Amount <= filterOptions.MaxAmount)
             .Select(e => new ExpenseDto(e.Id, e.CategoryId, e.Category.Name, e.Amount, e.Date, e.Comment))
